@@ -6,27 +6,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js (for CML)
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
-      - uses: actions/setup-python@v4
+          node-version: '18'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-      - uses: iterative/setup-cml@v1
+          python-version: '3.9'
+
+      - name: Setup CML
+        uses: iterative/setup-cml@v1
 
       - name: Prepare Environment
         run: |
-          # Your ML workflow goes here
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
           python script.py
 
       - name: Generate report
         env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "## Metrcis" > report.md
+          echo "## Metrics" > report.md
           awk 'NR%4{print "    " $0}{print ""}' metrics.txt >> report.md
 
           echo "## Confusion Matrix" >> report.md
